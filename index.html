@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>GCG SUPPLY HANGAR</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#f97316">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GCG HANGAR">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <style>
+    :root {
+      --bg:          #07091a;
+      --surface:     #0c1525;
+      --surface2:    #111e38;
+      --border:      #1a304d;
+      --border2:     #2a4d7a;
+      --accent:      #f97316;
+      --accent-dim:  rgba(249,115,22,0.12);
+      --accent-glow: rgba(249,115,22,0.35);
+      --blue:        #38bdf8;
+      --blue-dim:    rgba(56,189,248,0.08);
+      --text:        #dce8f5;
+      --muted:       #5c7a9a;
+      --dim:         #8aaccc;
+      --success:     #22c55e;
+      --danger:      #f43f5e;
+      --warn:        #fbbf24;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Courier New', Consolas, monospace;
+      background: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* グリッドパターン背景 */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(56,189,248,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56,189,248,0.025) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ---- レイアウト ---- */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      height: 100vh;
+      max-width: 640px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ---- ヘッダー ---- */
+    .app-header {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      background: linear-gradient(90deg, #07091a 0%, #0f1f3d 50%, #07091a 100%);
+      border-bottom: 2px solid var(--accent);
+      box-shadow: 0 2px 24px var(--accent-glow);
+    }
+
+    .header-emblem {
+      font-size: 1.6rem;
+      color: var(--accent);
+      line-height: 1;
+      text-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .header-title h1 {
+      font-size: 1rem;
+      font-weight: bold;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .header-title p {
+      font-size: 0.58rem;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .header-status {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--success);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.2; }
+    }
+
+    /* ---- メイン ---- */
+    .app-main {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .tab-screen          { display: none; padding: 14px; min-height: 100%; }
+    .tab-screen.active   { display: block; }
+
+    /* ---- 共通パーツ ---- */
+    .sec-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      margin-bottom: 8px;
+      padding-left: 2px;
+    }
+
+    .empty-hint {
+      text-align: center;
+      padding: 24px 10px;
+      color: var(--muted);
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+    }
+
+    .no-result {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      letter-spacing: 0.1em;
+    }
+
+    /* ---- ボタン ---- */
+    .btn {
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      padding: 7px 14px;
+      white-space: nowrap;
+    }
+
+    .btn-primary              { background: var(--accent); color: #07091a; }
+    .btn-primary:hover        { background: #fb923c; }
+    .btn-primary:active       { background: #ea7010; }
+
+    .btn-ghost                { background: var(--surface2); color: var(--blue); border: 1px solid var(--border2); }
+    .btn-ghost:hover          { border-color: var(--blue); background: var(--blue-dim); }
+
+    .btn-danger               { background: transparent; color: var(--danger); border: 1px solid rgba(244,63,94,0.35); }
+    .btn-danger:hover         { background: rgba(244,63,94,0.1); }
+
+    .btn-icon {
+      width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0;
+      background: var(--surface2);
+      color: var(--dim);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .btn-icon:hover          { border-color: var(--border2); color: var(--text); }
+    .btn-icon.del:hover      { border-color: var(--danger); color: var(--danger); background: rgba(244,63,94,0.08); }
+
+    .btn-order {
+      width: 24px; height: 13px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      font-size: 0.6rem;
+      cursor: pointer;
+    }
+    .btn-order:hover          { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
+    .btn-order:disabled       { opacity: 0.2; pointer-events: none; }
+
+    /* ---- デッキバー ---- */
+    .deck-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .deck-bar-row             { display: flex; gap: 6px; margin-bottom: 8px; }
+    .deck-bar-row:last-child  { margin-bottom: 0; }
+
+    .deck-name-input {
+      flex: 1;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      border-radius: 3px;
+      padding: 7px 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+    .deck-name-input:focus    { outline: none; border-color: var(--accent); }
+
+    .deck-select {
+      flex: 1;
+      background: var(--bg);
+      color: var(--dim);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 6px 8px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .deck-select:focus        { outline: none; border-color: var(--blue); }
+
+    /* ---- カード追加フォーム ---- */
+    .add-form { display: flex; gap: 6px; margin-bottom: 12px; }
+
+    .card-input {
+      flex: 1;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      border-radius: 3px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+    .card-input:focus         { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-dim); }
+
+    /* ---- カードリスト ---- */
+    .card-list { display: flex; flex-direction: column; gap: 4px; }
+
+    .card-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 8px 10px;
+    }
+    .card-row:hover           { border-color: var(--border2); }
+
+    .card-row-name {
+      flex: 1;
+      font-size: 0.88rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .count-ctrl               { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+    .count-num {
+      min-width: 28px;
+      text-align: center;
+      font-weight: bold;
+      color: var(--blue);
+      font-size: 0.95rem;
+    }
+
+    .order-col                { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+
+    /* ---- フィルターバー ---- */
+    .filter-bar               { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+
+    .filter-btn {
+      padding: 4px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border2);
+      background: var(--surface);
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.78rem;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+    }
+    .filter-btn:hover         { color: var(--dim); border-color: var(--dim); }
+    .filter-btn.active        { background: var(--accent); color: #07091a; border-color: var(--accent); font-weight: bold; }
+
+    /* ---- 必要カードリスト ---- */
+    .req-list                 { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+
+    .req-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--danger);
+      border-radius: 4px;
+      padding: 12px;
+    }
+    .req-card:hover           { border-color: var(--border2); border-left-color: var(--danger); }
+    .req-card.purchased       { opacity: 0.5; border-left-color: var(--success); }
+
+    .req-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .req-card-name {
+      font-size: 0.92rem;
+      font-weight: bold;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .req-card.purchased .req-card-name { text-decoration: line-through; }
+
+    .req-badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 2px;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      flex-shrink: 0;
+    }
+    .req-badge.miss           { background: rgba(244,63,94,0.15); color: var(--danger); border: 1px solid rgba(244,63,94,0.3); }
+    .req-badge.ok             { background: rgba(34,197,94,0.15); color: var(--success); border: 1px solid rgba(34,197,94,0.3); }
+
+    .req-stats {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 8px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .req-stats strong         { color: var(--dim); }
+
+    .req-controls             { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .price-input {
+      width: 80px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border2);
+      border-radius: 3px;
+      padding: 4px 8px;
+      font-size: 0.82rem;
+      font-family: inherit;
+      text-align: right;
+      -moz-appearance: textfield;
+    }
+    .price-input::-webkit-inner-spin-button,
+    .price-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .price-input:focus        { outline: none; border-color: var(--accent); }
+
+    .subtotal                 { font-size: 0.82rem; color: var(--warn); font-weight: bold; min-width: 68px; }
+
+    .status-select {
+      background: var(--bg);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 4px 6px;
+      font-size: 0.78rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .status-select:focus      { outline: none; }
+    .status-select.s-soon     { border-color: var(--danger); color: var(--danger); }
+    .status-select.s-later    { border-color: var(--muted);  color: var(--muted); }
+    .status-select.s-considering { border-color: var(--warn); color: var(--warn); }
+
+    .purchased-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+      font-size: 0.78rem;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .purchased-check          { cursor: pointer; accent-color: var(--success); width: 15px; height: 15px; }
+
+    .btn-revert {
+      background: var(--surface2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 3px 8px;
+      font-size: 0.75rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .btn-revert:hover         { color: var(--warn); border-color: var(--warn); }
+
+    .store-input {
+      flex: 1;
+      min-width: 80px;
+      background: var(--bg);
+      color: var(--dim);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 4px 8px;
+      font-size: 0.78rem;
+      font-family: inherit;
+    }
+    .store-input:focus        { outline: none; border-color: var(--blue); color: var(--text); }
+    .store-input::placeholder { color: var(--muted); }
+
+    /* ---- 合計バー ---- */
+    .total-bar {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--warn);
+      border-radius: 4px;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .total-label              { font-size: 0.72rem; letter-spacing: 0.15em; color: var(--muted); }
+    .total-amount             { font-size: 1.2rem; font-weight: bold; color: var(--warn); }
+
+    /* ---- フッタータブ ---- */
+    .app-footer {
+      flex-shrink: 0;
+      display: flex;
+      background: #04071a;
+      border-top: 2px solid var(--border);
+      z-index: 10;
+    }
+
+    .tab-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 10px 6px 8px;
+      background: none;
+      border: none;
+      border-top: 2px solid transparent;
+      cursor: pointer;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.68rem;
+      letter-spacing: 0.05em;
+    }
+    .tab-btn:hover            { color: var(--dim); }
+    .tab-btn.active           { color: var(--accent); border-top-color: var(--accent); }
+    .tab-icon                 { font-size: 1.2rem; line-height: 1; }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+
+    <header class="app-header">
+      <div class="header-emblem">⬡</div>
+      <div class="header-title">
+        <h1>GCG SUPPLY HANGAR</h1>
+        <p>DECK MANAGEMENT SYSTEM v1.0</p>
+      </div>
+      <div class="header-status">
+        <div class="status-dot"></div>
+        ONLINE
+      </div>
+    </header>
+
+    <main class="app-main">
+
+      <!-- ① デッキ登録 -->
+      <section id="tab-deck" class="tab-screen active">
+        <div class="deck-bar">
+          <div class="sec-label">▸ DECK SELECT</div>
+          <div class="deck-bar-row">
+            <input type="text" id="deck-name-field" class="deck-name-input" placeholder="デッキ名を入力">
+          </div>
+          <div class="deck-bar-row">
+            <select id="deck-select" class="deck-select"></select>
+            <button class="btn btn-ghost" id="new-deck-btn">＋ NEW</button>
+            <button class="btn btn-danger" id="del-deck-btn">DEL</button>
+          </div>
+        </div>
+
+        <div class="sec-label">▸ CARD REGISTRY</div>
+        <div class="add-form">
+          <input type="text" id="card-input" class="card-input" placeholder="カード名を入力">
+          <button class="btn btn-primary" id="card-add-btn">LOAD</button>
+        </div>
+        <div class="card-list" id="deck-list"></div>
+      </section>
+
+      <!-- ② 所持カード登録 -->
+      <section id="tab-owned" class="tab-screen">
+        <div class="sec-label">▸ STOCK INVENTORY</div>
+        <div class="card-list" id="owned-list"></div>
+      </section>
+
+      <!-- ③ 必要カード表示 -->
+      <section id="tab-required" class="tab-screen">
+        <div class="sec-label">▸ SUPPLY REQUEST</div>
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all">ALL</button>
+          <button class="filter-btn" data-filter="soon">すぐ買う</button>
+          <button class="filter-btn" data-filter="later">後回し</button>
+          <button class="filter-btn" data-filter="considering">検討中</button>
+        </div>
+        <div class="req-list" id="req-list"></div>
+        <div class="total-bar" id="total-bar" style="display:none">
+          <span class="total-label">◈ TOTAL BUDGET</span>
+          <span class="total-amount" id="total-amount">¥0</span>
+        </div>
+      </section>
+
+    </main>
+
+    <nav class="app-footer">
+      <button class="tab-btn active" data-tab="deck">
+        <span class="tab-icon">⚙</span>
+        <span>デッキ登録</span>
+      </button>
+      <button class="tab-btn" data-tab="owned">
+        <span class="tab-icon">◉</span>
+        <span>所持カード</span>
+      </button>
+      <button class="tab-btn" data-tab="required">
+        <span class="tab-icon">◆</span>
+        <span>必要カード</span>
+      </button>
+    </nav>
+
+  </div>
+  <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+</body>
+</html>
