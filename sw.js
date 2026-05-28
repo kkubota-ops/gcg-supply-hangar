@@ -1,4 +1,4 @@
-const CACHE = 'gcg-hangar-v4';
+const CACHE = 'gcg-hangar-v5';
 const ASSETS = [
   './index.html',
   './app.js',
@@ -24,9 +24,15 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// リクエスト時：キャッシュ優先（オフライン対応）
+// リクエスト時：ネットワーク優先（最新版を常に取得、オフライン時のみキャッシュ）
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request))
+    fetch(e.request)
+      .then(response => {
+        const clone = response.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+        return response;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
