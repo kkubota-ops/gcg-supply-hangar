@@ -7,9 +7,11 @@ const state = {
   prices: {},     // { [cardName]: price }
   statuses: {},   // { [cardName]: 'soon'|'later'|'considering' }
   stores: {},     // { [cardName]: storeName }
+  storeList: [],  // registered store names
   purchased: {},  // { [cardName]: countAdded }
   activeTab: 'deck',
   activeFilter: 'all',
+  activeStoreFilter: 'all',
   lastMissing: [],
 };
 
@@ -42,9 +44,11 @@ function save() {
       prices: state.prices,
       statuses: state.statuses,
       stores: state.stores,
+      storeList: state.storeList,
       purchased: state.purchased,
       activeTab: state.activeTab,
       activeFilter: state.activeFilter,
+      activeStoreFilter: state.activeStoreFilter,
     }));
   } catch (_) {}
 }
@@ -54,15 +58,17 @@ function loadStorage() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
     const d = JSON.parse(raw);
-    state.decks        = d.decks        || {};
-    state.currentDeckId= d.currentDeckId|| null;
-    state.owned        = d.owned        || {};
-    state.prices       = d.prices       || {};
-    state.statuses     = d.statuses     || {};
-    state.stores       = d.stores       || {};
-    state.purchased    = d.purchased    || {};
-    state.activeTab    = d.activeTab    || 'deck';
-    state.activeFilter = d.activeFilter || 'all';
+    state.decks             = d.decks             || {};
+    state.currentDeckId     = d.currentDeckId     || null;
+    state.owned             = d.owned             || {};
+    state.prices            = d.prices            || {};
+    state.statuses          = d.statuses          || {};
+    state.stores            = d.stores            || {};
+    state.storeList         = d.storeList         || [];
+    state.purchased         = d.purchased         || {};
+    state.activeTab         = d.activeTab         || 'deck';
+    state.activeFilter      = d.activeFilter      || 'all';
+    state.activeStoreFilter = d.activeStoreFilter || 'all';
     return true;
   } catch (_) { return false; }
 }
@@ -161,6 +167,17 @@ function changeOwnedCount(cardName, delta) {
   renderOwnedList();
 }
 
+// ---- 店舗リスト操作 ----
+
+function addStore(name) {
+  const n = name.trim();
+  if (!n || state.storeList.includes(n)) return;
+  state.storeList.push(n);
+  save();
+  renderStoreFilter();
+  if (state.activeTab === 'required') renderRequiredList();
+}
+
 // ---- 描画 ----
 
 function renderDeckBar() {
@@ -243,9 +260,13 @@ function renderRequiredList() {
   const filter = state.activeFilter;
 
   const rows = state.lastMissing.filter(({ name }) => {
-    if (filter === 'all') return true;
-    if (state.purchased[name] !== undefined) return true; // 購入済みは常に表示
-    return state.statuses[name] === filter;
+    if (filter !== 'all') {
+      if (state.purchased[name] === undefined && state.statuses[name] !== filter) return false;
+    }
+    if (state.activeStoreFilter !== 'all') {
+      if ((state.stores[name] || '') !== state.activeStoreFilter) return false;
+    }
+    return true;
   });
 
   if (!rows.length) {
@@ -292,8 +313,10 @@ function renderRequiredList() {
             <option value="later"       ${status === 'later'       ? 'selected' : ''}>後回し</option>
             <option value="considering" ${status === 'considering' ? 'selected' : ''}>検討中</option>
           </select>
-          <input type="text" class="store-input" data-name="${esc(name)}"
-                 value="${esc(store)}" placeholder="店名メモ">
+          <select class="store-select${store ? ' has-store' : ''}" data-name="${esc(name)}">
+            <option value="">— 店名選択 —</option>
+            ${state.storeList.map(s => `<option value="${esc(s)}"${store === s ? ' selected' : ''}>${esc(s)}</option>`).join('')}
+          </select>
           <div class="purchased-ctrl">
             ${bought
               ? `<button class="btn-revert" data-name="${esc(name)}">↩ 取消</button>`
@@ -314,6 +337,17 @@ function renderRequiredList() {
   } else {
     totalBar.style.display = 'none';
   }
+}
+
+function renderStoreFilter() {
+  const bar = document.getElementById('store-filter-bar');
+  if (!bar) return;
+  bar.innerHTML = [
+    `<button class="filter-btn${state.activeStoreFilter === 'all' ? ' active' : ''}" data-store-filter="all">ALL</button>`,
+    ...state.storeList.map(s =>
+      `<button class="filter-btn${state.activeStoreFilter === s ? ' active' : ''}" data-store-filter="${esc(s)}">${esc(s)}</button>`
+    ),
+  ].join('');
 }
 
 function updateSubtotals() {
@@ -426,14 +460,6 @@ reqList.addEventListener('input', e => {
     else state.prices[name] = v;
     save();
     updateSubtotals();
-    return;
-  }
-  if (e.target.matches('.store-input')) {
-    const name = e.target.dataset.name;
-    const v = e.target.value.trim();
-    if (v) state.stores[name] = v;
-    else delete state.stores[name];
-    save();
   }
 });
 
@@ -443,6 +469,14 @@ reqList.addEventListener('change', e => {
     if (e.target.value) state.statuses[name] = e.target.value;
     else delete state.statuses[name];
     e.target.className = `status-select${e.target.value ? ` s-${e.target.value}` : ''}`;
+    save();
+    return;
+  }
+  if (e.target.matches('.store-select')) {
+    const name = e.target.dataset.name;
+    const v = e.target.value;
+    if (v) { state.stores[name] = v; e.target.classList.add('has-store'); }
+    else   { delete state.stores[name]; e.target.classList.remove('has-store'); }
     save();
     return;
   }
@@ -471,14 +505,36 @@ reqList.addEventListener('click', e => {
   renderRequiredList();
 });
 
-// フィルターバー
+// フィルターバー (ステータス)
 document.querySelector('.filter-bar').addEventListener('click', e => {
   const btn = e.target.closest('[data-filter]');
   if (!btn) return;
   state.activeFilter = btn.dataset.filter;
-  document.querySelectorAll('.filter-btn').forEach(b =>
+  document.querySelectorAll('.filter-btn[data-filter]').forEach(b =>
     b.classList.toggle('active', b.dataset.filter === state.activeFilter)
   );
+  renderRequiredList();
+  save();
+});
+
+// 店舗追加
+function handleAddStore() {
+  const inp = document.getElementById('store-name-input');
+  addStore(inp.value);
+  inp.value = '';
+  inp.focus();
+}
+document.getElementById('store-add-btn').addEventListener('click', handleAddStore);
+document.getElementById('store-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleAddStore();
+});
+
+// 店舗フィルターバー
+document.getElementById('store-filter-bar').addEventListener('click', e => {
+  const btn = e.target.closest('[data-store-filter]');
+  if (!btn) return;
+  state.activeStoreFilter = btn.dataset.storeFilter;
+  renderStoreFilter();
   renderRequiredList();
   save();
 });
@@ -487,6 +543,12 @@ document.querySelector('.filter-bar').addEventListener('click', e => {
 
 function init() {
   const ok = loadStorage();
+
+  // 旧データ移行: stores の値を storeList に取り込む
+  Object.values(state.stores).forEach(s => {
+    if (s && !state.storeList.includes(s)) state.storeList.push(s);
+  });
+
   if (!ok || Object.keys(state.decks).length === 0) {
     // 初回起動: デフォルトデッキを作成してデッキ登録タブを表示
     const id = genId();
@@ -496,12 +558,14 @@ function init() {
     renderDeckBar();
     renderDeckList();
     renderOwnedList();
+    renderStoreFilter();
   } else {
     if (!state.currentDeckId || !state.decks[state.currentDeckId])
       state.currentDeckId = Object.keys(state.decks)[0];
     renderDeckBar();
     renderDeckList();
     renderOwnedList();
+    renderStoreFilter();
     // 保存されていたタブを復元
     const savedTab = state.activeTab || 'deck';
     document.querySelectorAll('.tab-screen').forEach(s => s.classList.remove('active'));
@@ -510,7 +574,7 @@ function init() {
     );
     document.getElementById(`tab-${savedTab}`).classList.add('active');
     // フィルターボタンの状態復元
-    document.querySelectorAll('.filter-btn').forEach(b =>
+    document.querySelectorAll('.filter-btn[data-filter]').forEach(b =>
       b.classList.toggle('active', b.dataset.filter === state.activeFilter)
     );
     if (savedTab === 'required') calcAndRenderRequired();
