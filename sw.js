@@ -1,4 +1,4 @@
-const CACHE = 'gcg-hangar-v3';
+const CACHE = 'gcg-hangar-v4';
 const ASSETS = [
   './index.html',
   './app.js',
