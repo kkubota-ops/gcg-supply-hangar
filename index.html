@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
   <title>GCG SUPPLY HANGAR</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#f97316">
@@ -129,7 +129,7 @@
       overflow-x: hidden;
     }
 
-    .tab-screen          { display: none; padding: 14px; min-height: 100%; }
+    .tab-screen          { display: none; padding: 14px 14px calc(14px + 70px + env(safe-area-inset-bottom, 0px)); min-height: 100%; }
     .tab-screen.active   { display: block; }
 
     /* ---- 共通パーツ ---- */
@@ -422,19 +422,23 @@
     }
     .btn-revert:hover         { color: var(--warn); border-color: var(--warn); }
 
-    .store-input {
+    .store-select {
       flex: 1;
       min-width: 80px;
       background: var(--bg);
-      color: var(--dim);
+      color: var(--muted);
       border: 1px solid var(--border);
       border-radius: 3px;
-      padding: 4px 8px;
+      padding: 4px 6px;
       font-size: 0.78rem;
       font-family: inherit;
+      cursor: pointer;
     }
-    .store-input:focus        { outline: none; border-color: var(--blue); color: var(--text); }
-    .store-input::placeholder { color: var(--muted); }
+    .store-select:focus     { outline: none; border-color: var(--blue); }
+    .store-select.has-store { color: var(--dim); border-color: var(--border2); }
+
+    /* ---- 店舗フィルターバー ---- */
+    .store-filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 
     /* ---- 合計バー ---- */
     .total-bar {
@@ -458,6 +462,7 @@
       background: #04071a;
       border-top: 2px solid var(--border);
       z-index: 10;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     .tab-btn {
@@ -535,6 +540,12 @@
           <button class="filter-btn" data-filter="later">後回し</button>
           <button class="filter-btn" data-filter="considering">検討中</button>
         </div>
+        <div class="sec-label" style="margin-top:4px">▸ STORE FILTER</div>
+        <div class="add-form">
+          <input type="text" id="store-name-input" class="card-input" placeholder="新しい店名を入力">
+          <button class="btn btn-ghost" id="store-add-btn">追加</button>
+        </div>
+        <div class="store-filter-bar" id="store-filter-bar"></div>
         <div class="req-list" id="req-list"></div>
         <div class="total-bar" id="total-bar" style="display:none">
           <span class="total-label">◈ TOTAL BUDGET</span>
