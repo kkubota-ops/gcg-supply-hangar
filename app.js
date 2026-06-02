@@ -213,13 +213,13 @@ function renderDeckList() {
   }
   el.innerHTML = cards.map((c, i) => `
     <div class="card-row">
+      <button class="btn-icon" data-action="move-dn" data-idx="${i}" ${i === cards.length - 1 ? 'disabled' : ''} title="下へ">▼</button>
       <span class="card-row-name" title="${esc(c.name)}">${esc(c.name)}</span>
       <div class="count-ctrl">
         <button class="btn-icon" data-action="deck-dec" data-idx="${i}">−</button>
         <span class="count-num">${c.count}</span>
         <button class="btn-icon" data-action="deck-inc" data-idx="${i}">＋</button>
       </div>
-      <button class="btn-icon" data-action="move-dn" data-idx="${i}" ${i === cards.length - 1 ? 'disabled' : ''} title="下へ">▼</button>
       <button class="btn-icon del" data-action="deck-del" data-idx="${i}" title="削除">✕</button>
     </div>
   `).join('');
