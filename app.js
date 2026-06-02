@@ -178,6 +178,17 @@ function addStore(name) {
   if (state.activeTab === 'required') renderRequiredList();
 }
 
+function deleteStore(name) {
+  state.storeList = state.storeList.filter(s => s !== name);
+  Object.keys(state.stores).forEach(card => {
+    if (state.stores[card] === name) delete state.stores[card];
+  });
+  if (state.activeStoreFilter === name) state.activeStoreFilter = 'all';
+  save();
+  renderStoreFilter();
+  if (state.activeTab === 'required') renderRequiredList();
+}
+
 // ---- 描画 ----
 
 function renderDeckBar() {
@@ -208,6 +219,7 @@ function renderDeckList() {
         <span class="count-num">${c.count}</span>
         <button class="btn-icon" data-action="deck-inc" data-idx="${i}">＋</button>
       </div>
+      <button class="btn-icon" data-action="move-dn" data-idx="${i}" ${i === cards.length - 1 ? 'disabled' : ''} title="下へ">▼</button>
       <button class="btn-icon del" data-action="deck-del" data-idx="${i}" title="削除">✕</button>
     </div>
   `).join('');
@@ -341,7 +353,9 @@ function renderStoreFilter() {
   bar.innerHTML = [
     `<button class="filter-btn${state.activeStoreFilter === 'all' ? ' active' : ''}" data-store-filter="all">ALL</button>`,
     ...state.storeList.map(s =>
-      `<button class="filter-btn${state.activeStoreFilter === s ? ' active' : ''}" data-store-filter="${esc(s)}">${esc(s)}</button>`
+      `<span class="store-chip">
+        <button class="filter-btn${state.activeStoreFilter === s ? ' active' : ''}" data-store-filter="${esc(s)}">${esc(s)}</button><button class="store-del-btn" data-store-del="${esc(s)}" title="削除">✕</button>
+      </span>`
     ),
   ].join('');
 }
@@ -527,6 +541,11 @@ document.getElementById('store-name-input').addEventListener('keydown', e => {
 
 // 店舗フィルターバー
 document.getElementById('store-filter-bar').addEventListener('click', e => {
+  const delBtn = e.target.closest('[data-store-del]');
+  if (delBtn) {
+    deleteStore(delBtn.dataset.storeDel);
+    return;
+  }
   const btn = e.target.closest('[data-store-filter]');
   if (!btn) return;
   state.activeStoreFilter = btn.dataset.storeFilter;

@@ -443,6 +443,22 @@
     /* ---- 店舗フィルターバー ---- */
     .store-filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 
+    .store-chip { display: inline-flex; align-items: center; }
+    .store-chip .filter-btn { border-radius: 20px 0 0 20px; border-right: none; }
+    .store-del-btn {
+      height: 100%;
+      padding: 4px 8px;
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--border2);
+      border-left: none;
+      border-radius: 0 20px 20px 0;
+      font-size: 0.65rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .store-del-btn:hover { background: rgba(244,63,94,0.1); color: var(--danger); border-color: var(--danger); }
+
     /* ---- 合計バー ---- */
     .total-bar {
       background: var(--surface2);
