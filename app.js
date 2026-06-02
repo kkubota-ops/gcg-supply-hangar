@@ -116,6 +116,25 @@ function deleteDeck(id) {
 
 // ---- カード操作 ----
 
+function renameDeckCard(idx, newName) {
+  const deck = currentDeck();
+  if (!deck || !deck.cards[idx]) return;
+  const n = newName.trim();
+  if (!n) return;
+  const old = deck.cards[idx].name;
+  if (old === n) return;
+  deck.cards[idx].name = n;
+  ['owned', 'prices', 'statuses', 'stores', 'purchased'].forEach(key => {
+    if (state[key][old] !== undefined) {
+      state[key][n] = state[key][old];
+      delete state[key][old];
+    }
+  });
+  save();
+  renderDeckList();
+  renderOwnedList();
+}
+
 function addDeckCard(name) {
   const n = name.trim();
   if (!n) return;
@@ -214,7 +233,7 @@ function renderDeckList() {
   el.innerHTML = cards.map((c, i) => `
     <div class="card-row">
       <button class="btn-icon" data-action="move-dn" data-idx="${i}" ${i === cards.length - 1 ? 'disabled' : ''} title="下へ">▼</button>
-      <span class="card-row-name" title="${esc(c.name)}">${esc(c.name)}</span>
+      <span class="card-row-name" data-idx="${i}" data-name="${esc(c.name)}" title="タップで編集">${esc(c.name)}</span>
       <div class="count-ctrl">
         <button class="btn-icon" data-action="deck-dec" data-idx="${i}">−</button>
         <span class="count-num">${c.count}</span>
@@ -457,6 +476,30 @@ document.addEventListener('click', e => {
     case 'owned-inc': changeOwnedCount(name, 1); break;
     case 'owned-dec': changeOwnedCount(name, -1); break;
   }
+});
+
+// カード名クリックでインライン編集
+document.getElementById('deck-list').addEventListener('click', e => {
+  const nameEl = e.target.closest('.card-row-name');
+  if (!nameEl) return;
+  const idx = parseInt(nameEl.dataset.idx, 10);
+  const current = nameEl.dataset.name;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.value = current;
+  input.className = 'card-input';
+  input.style.cssText = 'flex:1; padding:4px 8px; font-size:1rem; font-weight:bold;';
+  nameEl.replaceWith(input);
+  input.focus();
+  input.select();
+
+  const commit = () => { renameDeckCard(idx, input.value || current); };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter')  { input.blur(); }
+    if (e.key === 'Escape') { input.value = current; input.blur(); }
+  });
 });
 
 // 必要カードリストのイベント（price / status / purchase）
