@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'gcg_hangar_v1';
+const STORAGE_KEY = 'tcg_hangar_v2';
 
 const state = {
   decks: {},
@@ -202,10 +202,6 @@ function renderDeckList() {
   }
   el.innerHTML = cards.map((c, i) => `
     <div class="card-row">
-      <div class="order-col">
-        <button class="btn-order" data-action="move-up" data-idx="${i}" ${i === 0 ? 'disabled' : ''}>▲</button>
-        <button class="btn-order" data-action="move-dn" data-idx="${i}" ${i === cards.length - 1 ? 'disabled' : ''}>▼</button>
-      </div>
       <span class="card-row-name" title="${esc(c.name)}">${esc(c.name)}</span>
       <div class="count-ctrl">
         <button class="btn-icon" data-action="deck-dec" data-idx="${i}">−</button>
@@ -550,10 +546,43 @@ function init() {
   });
 
   if (!ok || Object.keys(state.decks).length === 0) {
-    // 初回起動: デフォルトデッキを作成してデッキ登録タブを表示
+    // 初回起動: サンプルデッキを作成
     const id = genId();
-    state.decks[id] = { name: 'デッキ1', cards: [] };
+    state.decks[id] = {
+      name: 'サンプルデッキ',
+      cards: [
+        { name: 'ガンダム', count: 4 },
+        { name: 'シャア専用ザク', count: 4 },
+        { name: 'アムロ・レイ', count: 2 },
+        { name: 'ニュータイプ覚醒', count: 3 },
+        { name: 'ジム', count: 4 },
+        { name: 'ハロ', count: 2 },
+      ]
+    };
     state.currentDeckId = id;
+    state.owned = {
+      'ガンダム': 1,
+      'シャア専用ザク': 0,
+      'アムロ・レイ': 1,
+      'ニュータイプ覚醒': 0,
+      'ジム': 2,
+      'ハロ': 2,
+    };
+    state.storeList = ['カードキングダム', '駿河屋', 'トレトク'];
+    state.stores = {
+      'ガンダム': 'カードキングダム',
+      'シャア専用ザク': '駿河屋',
+      'アムロ・レイ': 'カードキングダム',
+      'ニュータイプ覚醒': 'トレトク',
+      'ジム': '駿河屋',
+    };
+    state.statuses = {
+      'ガンダム': 'soon',
+      'シャア専用ザク': 'soon',
+      'アムロ・レイ': 'later',
+      'ニュータイプ覚醒': 'considering',
+      'ジム': 'soon',
+    };
     save();
     renderDeckBar();
     renderDeckList();

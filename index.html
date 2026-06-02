@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
-  <title>GCG SUPPLY HANGAR</title>
+  <title>TCG SUPPLY HANGAR</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#f97316">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="GCG HANGAR">
+  <meta name="apple-mobile-web-app-title" content="TCG HANGAR">
   <link rel="apple-touch-icon" href="icon.svg">
   <style>
     :root {
@@ -22,9 +22,9 @@
       --accent-glow: rgba(249,115,22,0.35);
       --blue:        #38bdf8;
       --blue-dim:    rgba(56,189,248,0.08);
-      --text:        #dce8f5;
-      --muted:       #5c7a9a;
-      --dim:         #8aaccc;
+      --text:        #f0f6ff;
+      --muted:       #7a9cc0;
+      --dim:         #a8c8e8;
       --success:     #22c55e;
       --danger:      #f43f5e;
       --warn:        #fbbf24;
@@ -277,7 +277,9 @@
 
     .card-row-name {
       flex: 1;
-      font-size: 0.88rem;
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--text);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -286,11 +288,11 @@
     .count-ctrl               { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 
     .count-num {
-      min-width: 28px;
+      min-width: 30px;
       text-align: center;
       font-weight: bold;
       color: var(--blue);
-      font-size: 0.95rem;
+      font-size: 1.15rem;
     }
 
     .order-col                { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
@@ -334,8 +336,9 @@
     }
 
     .req-card-name {
-      font-size: 0.92rem;
+      font-size: 1.05rem;
       font-weight: bold;
+      color: var(--text);
       flex: 1;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -358,10 +361,10 @@
       display: flex;
       gap: 14px;
       margin-bottom: 8px;
-      font-size: 0.78rem;
-      color: var(--muted);
+      font-size: 0.88rem;
+      color: var(--dim);
     }
-    .req-stats strong         { color: var(--dim); }
+    .req-stats strong         { color: var(--text); font-weight: bold; }
 
     .req-controls             { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
@@ -426,16 +429,16 @@
       flex: 1;
       min-width: 80px;
       background: var(--bg);
-      color: var(--muted);
+      color: var(--dim);
       border: 1px solid var(--border);
       border-radius: 3px;
       padding: 4px 6px;
-      font-size: 0.78rem;
+      font-size: 0.82rem;
       font-family: inherit;
       cursor: pointer;
     }
     .store-select:focus     { outline: none; border-color: var(--blue); }
-    .store-select.has-store { color: var(--dim); border-color: var(--border2); }
+    .store-select.has-store { color: var(--text); font-weight: bold; border-color: var(--border2); }
 
     /* ---- 店舗フィルターバー ---- */
     .store-filter-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -492,7 +495,7 @@
     <header class="app-header">
       <div class="header-emblem">⬡</div>
       <div class="header-title">
-        <h1>GCG SUPPLY HANGAR</h1>
+        <h1>TCG SUPPLY HANGAR</h1>
         <p>DECK MANAGEMENT SYSTEM v1.0</p>
       </div>
       <div class="header-status">

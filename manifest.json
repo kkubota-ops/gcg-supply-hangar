@@ -1,7 +1,7 @@
 {
-  "name": "GCG SUPPLY HANGAR",
-  "short_name": "GCG HANGAR",
-  "description": "ガンダムカードゲーム デッキ管理＆お買い物アプリ",
+  "name": "TCG SUPPLY HANGAR",
+  "short_name": "TCG HANGAR",
+  "description": "トレーディングカードゲーム デッキ管理＆お買い物アプリ",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#07091a",
