@@ -538,6 +538,16 @@
           </div>
         </div>
 
+        <!-- UUID取り込み -->
+        <div class="deck-bar" style="border-left-color: var(--blue); margin-bottom: 14px;">
+          <div class="sec-label">▸ IMPORT FROM DECK BUILDER</div>
+          <div class="add-form" style="margin-bottom: 6px;">
+            <input type="text" id="uuid-input" class="card-input" placeholder="デッキビルダーのUUIDを入力">
+            <button class="btn btn-ghost" id="uuid-import-btn">取込</button>
+          </div>
+          <div id="uuid-msg" style="display:none; font-size:0.75rem; padding: 2px 2px; letter-spacing:0.05em;"></div>
+        </div>
+
         <div class="sec-label">▸ CARD REGISTRY</div>
         <div class="add-form">
           <input type="text" id="card-input" class="card-input" placeholder="カード名を入力">

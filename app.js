@@ -597,6 +597,59 @@ document.getElementById('store-filter-bar').addEventListener('click', e => {
   save();
 });
 
+// ---- UUID取り込み ----
+
+function showUuidMsg(msg, type) {
+  const el = document.getElementById('uuid-msg');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = type === 'error' ? 'var(--danger)' : 'var(--success)';
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+function importFromUuid(uuid) {
+  const trimmed = uuid.trim();
+  if (!trimmed) return;
+  try {
+    const raw = localStorage.getItem('gcg_exports');
+    if (!raw) { showUuidMsg('データが見つかりません。デッキビルダーで保存してください。', 'error'); return; }
+    const exports = JSON.parse(raw);
+    const data = exports[trimmed];
+    if (!data) { showUuidMsg('UUIDに一致するデッキが見つかりません。', 'error'); return; }
+    const id = genId();
+    state.decks[id] = {
+      name: data.name || 'インポートデッキ',
+      cards: data.cards.map(c => ({ name: c.name, count: c.count })),
+    };
+    data.cards.forEach(c => {
+      if (state.owned[c.name] === undefined) state.owned[c.name] = 0;
+    });
+    state.currentDeckId = id;
+    state.lastMissing = [];
+    save();
+    renderDeckBar();
+    renderDeckList();
+    renderOwnedList();
+    showUuidMsg(`「${data.name}」を取り込みました。`, 'success');
+  } catch (_) {
+    showUuidMsg('取り込みに失敗しました。', 'error');
+  }
+}
+
+document.getElementById('uuid-import-btn').addEventListener('click', () => {
+  const inp = document.getElementById('uuid-input');
+  importFromUuid(inp.value);
+  inp.value = '';
+});
+
+document.getElementById('uuid-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    importFromUuid(e.target.value);
+    e.target.value = '';
+  }
+});
+
 // ---- 初期化 ----
 
 function init() {
