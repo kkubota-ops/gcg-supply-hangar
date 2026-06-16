@@ -180,6 +180,13 @@ function moveCard(idx, dir) {
   renderOwnedList();
 }
 
+function changeRarity(idx, rarity) {
+  const deck = currentDeck();
+  if (!deck || !deck.cards[idx]) return;
+  deck.cards[idx].rarity = rarity || undefined;
+  save();
+}
+
 function changeOwnedCount(cardName, delta) {
   state.owned[cardName] = Math.max(0, (state.owned[cardName] ?? 0) + delta);
   save();
@@ -230,10 +237,14 @@ function renderDeckList() {
     el.innerHTML = '<div class="empty-hint">[ NO CARDS LOADED ]</div>';
     return;
   }
+  const RARITIES = ['', 'C', 'U', 'R', 'LR', 'P'];
   el.innerHTML = cards.map((c, i) => `
     <div class="card-row">
       <button class="btn-icon" data-action="move-dn" data-idx="${i}" ${i === cards.length - 1 ? 'disabled' : ''} title="下へ">▼</button>
       <span class="card-row-name" data-idx="${i}" data-name="${esc(c.name)}" title="タップで編集">${esc(c.name)}</span>
+      <select class="rarity-select${c.rarity ? ' has-rarity' : ''}" data-action="rarity-change" data-idx="${i}">
+        ${RARITIES.map(r => `<option value="${r}"${c.rarity === r ? ' selected' : ''}>${r || '—'}</option>`).join('')}
+      </select>
       <div class="count-ctrl">
         <button class="btn-icon" data-action="deck-dec" data-idx="${i}">−</button>
         <span class="count-num">${c.count}</span>
@@ -476,6 +487,14 @@ document.addEventListener('click', e => {
     case 'owned-inc': changeOwnedCount(name, 1); break;
     case 'owned-dec': changeOwnedCount(name, -1); break;
   }
+});
+
+document.getElementById('deck-list').addEventListener('change', e => {
+  const sel = e.target.closest('[data-action="rarity-change"]');
+  if (!sel) return;
+  const i = parseInt(sel.dataset.idx, 10);
+  changeRarity(i, sel.value);
+  sel.classList.toggle('has-rarity', !!sel.value);
 });
 
 // カード名クリックでインライン編集
