@@ -271,6 +271,7 @@ function renderOwnedList() {
   el.innerHTML = cards.map(c => `
     <div class="card-row">
       <span class="card-row-name" title="${esc(c.name)}">${esc(c.name)}</span>
+      ${c.rarity ? `<span class="rarity-badge">${esc(c.rarity)}</span>` : ''}
       <div class="count-ctrl">
         <button class="btn-icon" data-action="owned-dec" data-name="${esc(c.name)}">−</button>
         <span class="count-num">${state.owned[c.name] ?? 0}</span>
@@ -287,11 +288,12 @@ function calcAndRenderRequired() {
   } else {
     // デッキ順を維持しながら不足カードを計算
     state.lastMissing = deck.cards
-      .map(({ name, count: req }) => ({
+      .map(({ name, count: req, rarity }) => ({
         name,
         required: req,
         owned: state.owned[name] ?? 0,
         missing: Math.max(req - (state.owned[name] ?? 0), 0),
+        rarity: rarity || '',
       }))
       .filter(c => c.missing > 0 || state.purchased[c.name] !== undefined);
   }
@@ -321,7 +323,7 @@ function renderRequiredList() {
   let total = 0;
   let hasPrices = false;
 
-  el.innerHTML = rows.map(({ name, required }) => {
+  el.innerHTML = rows.map(({ name, required, rarity }) => {
     const owned   = state.owned[name] ?? 0;
     const missing = Math.max(required - owned, 0);
     const bought  = state.purchased[name] !== undefined;
@@ -335,7 +337,7 @@ function renderRequiredList() {
     return `
       <div class="req-card${bought ? ' purchased' : ''}" data-card="${esc(name)}">
         <div class="req-card-head">
-          <span class="req-card-name" title="${esc(name)}">${esc(name)}</span>
+          <span class="req-card-name" title="${esc(name)}">${esc(name)}${rarity ? ` <span class="rarity-badge">${esc(rarity)}</span>` : ''}</span>
           ${bought
             ? '<span class="req-badge ok">購入済み ✓</span>'
             : `<span class="req-badge miss">不足 ${missing} 枚</span>`}
