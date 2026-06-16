@@ -185,6 +185,7 @@ function changeRarity(idx, rarity) {
   if (!deck || !deck.cards[idx]) return;
   deck.cards[idx].rarity = rarity || undefined;
   save();
+  renderDeckList();
 }
 
 function changeOwnedCount(cardName, delta) {
@@ -237,13 +238,16 @@ function renderDeckList() {
     el.innerHTML = '<div class="empty-hint">[ NO CARDS LOADED ]</div>';
     return;
   }
-  const RARITIES = ['', 'C', 'U', 'R', 'LR', 'P'];
-  el.innerHTML = cards.map((c, i) => `
+  const FALLBACK_RARITIES = ['C', 'U', 'R', 'LR', 'P'];
+  el.innerHTML = cards.map((c, i) => {
+    const availableRarities = c.rarities && c.rarities.length > 0 ? c.rarities : FALLBACK_RARITIES;
+    const currentRarity = c.rarity || availableRarities[0] || '';
+    return `
     <div class="card-row">
       <button class="btn-icon" data-action="move-dn" data-idx="${i}" ${i === cards.length - 1 ? 'disabled' : ''} title="下へ">▼</button>
       <span class="card-row-name" data-idx="${i}" data-name="${esc(c.name)}" title="タップで編集">${esc(c.name)}</span>
-      <select class="rarity-select${c.rarity ? ' has-rarity' : ''}" data-action="rarity-change" data-idx="${i}">
-        ${RARITIES.map(r => `<option value="${r}"${c.rarity === r ? ' selected' : ''}>${r || '—'}</option>`).join('')}
+      <select class="rarity-select has-rarity" data-action="rarity-change" data-idx="${i}">
+        ${availableRarities.map(r => `<option value="${r}"${currentRarity === r ? ' selected' : ''}>${r}</option>`).join('')}
       </select>
       <div class="count-ctrl">
         <button class="btn-icon" data-action="deck-dec" data-idx="${i}">−</button>
@@ -252,7 +256,8 @@ function renderDeckList() {
       </div>
       <button class="btn-icon del" data-action="deck-del" data-idx="${i}" title="削除">✕</button>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function renderOwnedList() {
@@ -639,7 +644,12 @@ function importFromUuid(uuid) {
     const id = genId();
     state.decks[id] = {
       name: data.name || 'インポートデッキ',
-      cards: data.cards.map(c => ({ name: c.name, count: c.count })),
+      cards: data.cards.map(c => ({
+        name: c.name,
+        count: c.count,
+        rarity: c.defaultRarity || undefined,
+        rarities: c.rarities || undefined,
+      })),
     };
     data.cards.forEach(c => {
       if (state.owned[c.name] === undefined) state.owned[c.name] = 0;
