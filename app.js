@@ -238,7 +238,7 @@ function renderDeckList() {
     el.innerHTML = '<div class="empty-hint">[ NO CARDS LOADED ]</div>';
     return;
   }
-  const FALLBACK_RARITIES = ['C', 'U', 'R', 'LR', 'P'];
+  const FALLBACK_RARITIES = ['C', 'C+', 'U', 'U+', 'R', 'R+', 'LR', 'LR+', 'LR++', 'P'];
   el.innerHTML = cards.map((c, i) => {
     const availableRarities = c.rarities && c.rarities.length > 0 ? c.rarities : FALLBACK_RARITIES;
     const currentRarity = c.rarity || availableRarities[0] || '';
